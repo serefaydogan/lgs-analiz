@@ -126,7 +126,7 @@
 <body>
 <div class="sayfa">
   <header>
-    <div class="kitap-adi">LGS Matematik Soru Bankası</div>
+    <div class="kitap-adi" id="urunAdi">LGS Matematik</div>
     <h1 id="baslik"><span class="cizgi">Test analizi</span></h1>
   </header>
 
@@ -182,6 +182,27 @@
 </div>
 
 <script src="analiz-veri.js"></script>
+<script src="analiz-veri-temel.js"></script>
+<script>
+/* İki ürünün verisi tek havuzda birleşir; test kimliği hangi üründeyse oradan okunur. */
+(function () {
+  const U = window.URUNLER || {};
+  window.KAZANIMLAR = {};
+  window.TESTLER = [];
+  Object.keys(U).forEach(function (anahtar) {
+    const u = U[anahtar];
+    Object.keys(u.kazanimlar || {}).forEach(function (kod) {
+      window.KAZANIMLAR[kod] = Object.assign({}, u.kazanimlar[kod], { urun: anahtar });
+    });
+    (u.testler || []).forEach(function (t) {
+      window.TESTLER.push(Object.assign({}, t, {
+        urun: anahtar,
+        urunAd: (u.urun && u.urun.ad) || anahtar
+      }));
+    });
+  });
+})();
+</script>
 <script>
 /* =====================================================
    VERİ KATMANI
@@ -255,7 +276,9 @@ function testAc(id) {
   aktifTest = TESTLER.find(t => t.id === id);
   if (!aktifTest) { ekranGoster("secim"); return; }
   cevaplar = new Array(aktifTest.sorular.length).fill(null);
-  document.getElementById("girisTestAdi").textContent = aktifTest.ad;
+  document.getElementById("girisTestAdi").textContent = testAdi(aktifTest);
+  const ua = document.getElementById("urunAdi");
+  if (ua && aktifTest.urunAd) ua.textContent = aktifTest.urunAd;
   document.getElementById("hizliInput").value = "";
   document.getElementById("hizliKutu").classList.remove("acik");
   document.getElementById("eksikUyari").classList.remove("goster");
@@ -383,7 +406,7 @@ function sonucCiz(kaz, skor, onceki) {
   halka.style.border = "3px solid " + RENK[durum].c;
   halka.textContent = skor + "/" + toplam;
 
-  let detay = "<b>" + aktifTest.ad + "</b><br>Doğru: " + skor +
+  let detay = "<b>" + testAdi(aktifTest) + "</b><br>Doğru: " + skor +
               " · Yanlış: " + Object.values(kaz).reduce((t,k)=>t+k.yanlis,0) +
               " · Boş: " + Object.values(kaz).reduce((t,k)=>t+k.bos,0);
   if (onceki) {
@@ -402,6 +425,13 @@ function sonucCiz(kaz, skor, onceki) {
   Object.entries(kaz)
     .sort((a, b) => SIRA[a[1].durum] - SIRA[b[1].durum] || a[1].oran - b[1].oran)
     .forEach(([kod, k]) => kap.appendChild(kazanimKarti(kod, k, onceki)));
+}
+
+function testAdi(t) {
+  /* Ürün tek denemeden ibaretse "Deneme 1" yerine ürünün kendi adı gösterilir. */
+  const kardes = TESTLER.filter(x => x.urun === t.urun);
+  if (kardes.length === 1 && t.urunAd) return t.urunAd;
+  return t.ad;
 }
 
 function kazanimKarti(kod, k, onceki) {
@@ -434,7 +464,10 @@ function kazanimKarti(kod, k, onceki) {
   if (k.durum === "oncelikli" || k.durum === "pekistir") {
     const digerTestler = bilgi.testler.filter(t => t !== aktifTest.id);
     let recete = "";
-    if (bilgi.sayfa) recete += "Önce <b>sayfa " + bilgi.sayfa + "</b>'deki konu özetini oku";
+    if (bilgi.besledigi) {
+      recete = "Bu eksiğin, 8. sınıfta <b>" + bilgi.besledigi + "</b> konusunda seni zorlayacak";
+    }
+    if (bilgi.sayfa) recete += (recete ? ". " : "") + "Önce <b>sayfa " + bilgi.sayfa + "</b>'deki konu özetini oku";
     if (digerTestler.length) {
       recete += (recete ? ", sonra " : "") + "<b>" +
         digerTestler.map(t => "Test " + t.replace("K","")).join(" ve ") + "</b>'ü çöz";

@@ -1,5 +1,8 @@
 /* Bu dosya uret.py tarafından üretildi — elle düzenleme. */
-const KAZANIMLAR = {
+window.URUNLER = window.URUNLER || {};
+window.URUNLER["kitap"] = {
+  urun: {"ad": "LGS Matematik Soru Bankası", "anahtar": "kitap", "altbaslik": "8. sınıf"},
+  kazanimlar: {
   "M.8.1.1": {
     "ad": "Çarpanlar ve katlar",
     "sayfa": 3,
@@ -82,9 +85,8 @@ const KAZANIMLAR = {
       "K14"
     ]
   }
-};
-
-const TESTLER = [
+},
+  testler: [
   {
     "id": "K1",
     "tip": "konu",
@@ -1489,4 +1491,5 @@ const TESTLER = [
       }
     ]
   }
-];
+]
+};
