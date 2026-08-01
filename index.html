@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LGS Matematik · Test Analizi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --kagit:#FAF9F3;
+    --kare:#ECE9DC;
+    --murekkep:#1B2A4A;
+    --gri:#6B7280;
+    --kirmizi:#C93A2B;
+    --kirmizi-zemin:#FBEDEB;
+    --amber:#B26E0A;
+    --amber-zemin:#FBF3E2;
+    --yesil:#1F7A4D;
+    --yesil-zemin:#E9F5EE;
+    --notr-zemin:#F0EFEA;
+    --beyaz:#FFFFFF;
+    --radius:12px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Manrope',system-ui,sans-serif;
+    color:var(--murekkep);
+    background-color:var(--kagit);
+    background-image:
+      linear-gradient(var(--kare) 1px, transparent 1px),
+      linear-gradient(90deg, var(--kare) 1px, transparent 1px);
+    background-size:28px 28px;
+    min-height:100vh;
+  }
+  .sayfa{max-width:560px;margin:0 auto;padding:20px 16px 64px}
+  header{padding:18px 0 22px}
+  .kitap-adi{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gri);font-weight:600}
+  h1{font-size:26px;font-weight:800;line-height:1.2;margin-top:4px}
+  h1 .cizgi{box-shadow:inset 0 -10px 0 #F5D9A8}
+  .kart{background:var(--beyaz);border:1px solid #E3E0D4;border-radius:var(--radius);padding:18px;margin-bottom:14px;box-shadow:0 1px 2px rgba(27,42,74,.05)}
+  .kart h2{font-size:16px;font-weight:800;margin-bottom:12px}
+  .aciklama{font-size:14px;color:var(--gri);line-height:1.6}
+  button{font-family:inherit;cursor:pointer;border:none;background:none}
+
+  /* ---- Test seçimi ---- */
+  .sekmeler{display:flex;gap:8px;margin-bottom:14px}
+  .sekme{flex:1;padding:10px;border-radius:999px;border:1.5px solid var(--murekkep);font-weight:700;font-size:14px;color:var(--murekkep);background:var(--beyaz)}
+  .sekme.aktif{background:var(--murekkep);color:#fff}
+  .test-satir{display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 4px;border-bottom:1px dashed #E3E0D4;font-size:15px;font-weight:600;color:var(--murekkep);text-align:left}
+  .test-satir:last-child{border-bottom:none}
+  .test-satir small{display:block;font-weight:400;font-size:12.5px;color:var(--gri);margin-top:2px}
+  .test-satir .ok{color:var(--gri)}
+
+  /* ---- Cevap girişi ---- */
+  .giris-ust{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .geri{font-size:14px;font-weight:700;color:var(--gri);padding:6px 0}
+  .ilerleme-kap{height:8px;background:var(--notr-zemin);border-radius:999px;overflow:hidden;margin:6px 0 2px}
+  .ilerleme{height:100%;width:0;background:var(--murekkep);border-radius:999px;transition:width .25s}
+  .ilerleme-yazi{font-size:12.5px;color:var(--gri);font-weight:600}
+  .soru-satir{display:grid;grid-template-columns:34px repeat(5,1fr);align-items:center;gap:6px;padding:7px 0;border-bottom:1px dashed #EEEBDF}
+  .soru-satir:last-child{border-bottom:none}
+  .soru-no{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:500;color:var(--gri)}
+  .balon{
+    height:40px;border-radius:999px;border:1.6px solid #C9C5B6;
+    font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:500;
+    color:var(--gri);background:var(--beyaz);transition:all .12s;
+  }
+  .balon:active{transform:scale(.94)}
+  .balon.dolu{background:var(--murekkep);border-color:var(--murekkep);color:#fff}
+  .balon.bos-secim.dolu{background:var(--notr-zemin);border-color:var(--gri);color:var(--murekkep)}
+  .hizli-ac{font-size:13px;font-weight:700;color:var(--murekkep);text-decoration:underline;text-underline-offset:3px;margin:10px 0 0}
+  .hizli-kutu{display:none;margin-top:12px}
+  .hizli-kutu.acik{display:block}
+  .hizli-kutu input{
+    width:100%;padding:12px;border:1.5px solid var(--murekkep);border-radius:10px;
+    font-family:'IBM Plex Mono',monospace;font-size:15px;letter-spacing:.35em;text-transform:uppercase;
+  }
+  .hizli-kutu .aciklama{margin-top:6px;font-size:12.5px}
+  .analiz-btn{
+    width:100%;padding:16px;border-radius:var(--radius);background:var(--murekkep);color:#fff;
+    font-size:16px;font-weight:800;margin-top:16px;letter-spacing:.02em;
+  }
+  .analiz-btn:disabled{opacity:.35;cursor:not-allowed}
+  .uyari{display:none;font-size:13px;color:var(--kirmizi);font-weight:600;margin-top:10px;text-align:center}
+  .uyari.goster{display:block}
+
+  /* ---- Sonuç ---- */
+  .skor-kart{display:flex;align-items:center;gap:18px}
+  .skor-halka{
+    width:92px;height:92px;border-radius:50%;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:500;
+  }
+  .skor-detay{font-size:14px;color:var(--gri);line-height:1.7}
+  .skor-detay b{color:var(--murekkep)}
+  .delta{display:inline-block;font-size:12.5px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:4px}
+  .delta.arti{background:var(--yesil-zemin);color:var(--yesil)}
+  .delta.eksi{background:var(--kirmizi-zemin);color:var(--kirmizi)}
+  .kazanim-kart{border-left:4px solid var(--gri);border-radius:0 var(--radius) var(--radius) 0}
+  .kazanim-kart.oncelikli{border-left-color:var(--kirmizi)}
+  .kazanim-kart.pekistir{border-left-color:var(--amber)}
+  .kazanim-kart.saglam{border-left-color:var(--yesil)}
+  .kazanim-ust{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .kazanim-ad{font-size:15px;font-weight:800}
+  .kazanim-kod{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--gri);margin-top:2px}
+  .rozet{font-size:12px;font-weight:800;padding:4px 10px;border-radius:999px;white-space:nowrap}
+  .rozet.oncelikli{background:var(--kirmizi-zemin);color:var(--kirmizi)}
+  .rozet.pekistir{background:var(--amber-zemin);color:var(--amber)}
+  .rozet.saglam{background:var(--yesil-zemin);color:var(--yesil)}
+  .rozet.azveri{background:var(--notr-zemin);color:var(--gri)}
+  .cubuk-kap{height:8px;background:var(--notr-zemin);border-radius:999px;overflow:hidden;margin:12px 0 6px}
+  .cubuk{height:100%;border-radius:999px}
+  .sayilar{font-size:12.5px;color:var(--gri);font-weight:600}
+  .recete{margin-top:12px;padding:12px;border-radius:10px;background:var(--kagit);font-size:13.5px;line-height:1.65}
+  .recete b{font-weight:800}
+  .not{font-size:12.5px;color:var(--gri);margin-top:6px;line-height:1.55}
+  .alt-butonlar{display:flex;gap:10px;margin-top:8px}
+  .alt-butonlar button{flex:1;padding:14px;border-radius:var(--radius);font-size:14px;font-weight:800}
+  .btn-cizgili{border:1.5px solid var(--murekkep);color:var(--murekkep);background:var(--beyaz)}
+  .btn-dolu{background:var(--murekkep);color:#fff}
+  .gizli{display:none}
+  footer{text-align:center;font-size:12px;color:var(--gri);margin-top:28px}
+</style>
+</head>
+<body>
+<div class="sayfa">
+  <header>
+    <div class="kitap-adi">LGS Matematik Soru Bankası</div>
+    <h1 id="baslik"><span class="cizgi">Test analizi</span></h1>
+  </header>
+
+  <!-- EKRAN 1 · TEST SEÇİMİ -->
+  <section id="ekranSecim">
+    <div class="kart">
+      <p class="aciklama">Kitaptaki testin başındaki QR kodu okutursan doğrudan cevap girişine geçersin. QR olmadan da aşağıdan testini seçebilirsin.</p>
+    </div>
+    <div class="sekmeler">
+      <button class="sekme aktif" data-tip="konu" onclick="sekmeSec('konu')">Konu testleri</button>
+      <button class="sekme" data-tip="deneme" onclick="sekmeSec('deneme')">Denemeler</button>
+    </div>
+    <div class="kart" id="testListesi"></div>
+  </section>
+
+  <!-- EKRAN 2 · CEVAP GİRİŞİ -->
+  <section id="ekranGiris" class="gizli">
+    <div class="giris-ust">
+      <button class="geri" onclick="ekranGoster('secim')">&#8592; Testler</button>
+    </div>
+    <div class="kart">
+      <h2 id="girisTestAdi"></h2>
+      <div class="ilerleme-kap"><div class="ilerleme" id="ilerlemeCubuk"></div></div>
+      <div class="ilerleme-yazi" id="ilerlemeYazi"></div>
+    </div>
+    <div class="kart" id="cevapIzgara"></div>
+    <button class="hizli-ac" onclick="hizliModAc()">Hızlı giriş modu</button>
+    <div class="hizli-kutu" id="hizliKutu">
+      <input id="hizliInput" placeholder="ABDCA-BCDA" oninput="hizliUygula(this.value)">
+      <p class="aciklama">Cevaplarını tek satırda yaz. Boş bıraktığın sorular için tire (-) kullan.</p>
+    </div>
+    <button class="analiz-btn" id="analizBtn" onclick="analizEt(false)">Analiz et</button>
+    <p class="uyari" id="eksikUyari"></p>
+  </section>
+
+  <!-- EKRAN 3 · SONUÇ -->
+  <section id="ekranSonuc" class="gizli">
+    <div class="giris-ust">
+      <button class="geri" onclick="ekranGoster('giris')">&#8592; Cevaplarım</button>
+    </div>
+    <div class="kart skor-kart">
+      <div class="skor-halka" id="skorHalka"></div>
+      <div class="skor-detay" id="skorDetay"></div>
+    </div>
+    <div id="kazanimListesi"></div>
+    <div class="alt-butonlar">
+      <button class="btn-cizgili" onclick="yenidenCoz()">Yeniden gir</button>
+      <button class="btn-dolu" onclick="ekranGoster('secim')">Başka test</button>
+    </div>
+  </section>
+
+  <footer>Sonuçlar yalnızca bu cihazda saklanır.</footer>
+</div>
+
+<script src="analiz-veri.js"></script>
+<script>
+/* =====================================================
+   VERİ KATMANI
+   Kitap tamamlandığında bu iki yapı üretim hattından
+   otomatik doldurulacak. Şimdilik örnek veri.
+   ===================================================== */
+// Veriler analiz-veri.js dosyasından gelir (uret.py üretir)
+  const ESIK_SAGLAM = 0.75, ESIK_PEKISTIR = 0.5, MIN_SORU = 2;
+
+/* =====================================================
+   DURUM
+   ===================================================== */
+let aktifTest = null;
+let cevaplar = [];          /* "A".."D", "-" (boş) veya null (girilmedi) */
+let aktifSekme = "konu";
+
+/* =====================================================
+   DEPOLAMA (localStorage — try/catch ile korunuyor)
+   ===================================================== */
+function gecmisOku() {
+  try { return JSON.parse(localStorage.getItem("lgsAnaliz") || "{}"); }
+  catch(e) { return {}; }
+}
+function gecmisYaz(testId, kayit) {
+  try {
+    const g = gecmisOku();
+    (g[testId] = g[testId] || []).push(kayit);
+    localStorage.setItem("lgsAnaliz", JSON.stringify(g));
+  } catch(e) { /* depolama kapalıysa sessizce devam */ }
+}
+function sonKayit(testId) {
+  const g = gecmisOku();
+  const liste = g[testId] || [];
+  return liste.length ? liste[liste.length - 1] : null;
+}
+
+/* =====================================================
+   EKRAN YÖNETİMİ
+   ===================================================== */
+function ekranGoster(ad) {
+  document.getElementById("ekranSecim").classList.toggle("gizli", ad !== "secim");
+  document.getElementById("ekranGiris").classList.toggle("gizli", ad !== "giris");
+  document.getElementById("ekranSonuc").classList.toggle("gizli", ad !== "sonuc");
+  window.scrollTo(0, 0);
+}
+
+function sekmeSec(tip) {
+  aktifSekme = tip;
+  document.querySelectorAll(".sekme").forEach(b =>
+    b.classList.toggle("aktif", b.dataset.tip === tip));
+  testleriListele();
+}
+
+function testleriListele() {
+  const kap = document.getElementById("testListesi");
+  kap.innerHTML = "";
+  TESTLER.filter(t => t.tip === aktifSekme).forEach(t => {
+    const btn = document.createElement("button");
+    btn.className = "test-satir";
+    btn.innerHTML = "<span>" + t.ad +
+      "<small>" + t.sorular.length + " soru</small></span><span class='ok'>&#8594;</span>";
+    btn.onclick = () => testAc(t.id);
+    kap.appendChild(btn);
+  });
+}
+
+/* =====================================================
+   CEVAP GİRİŞİ
+   ===================================================== */
+function testAc(id) {
+  aktifTest = TESTLER.find(t => t.id === id);
+  if (!aktifTest) { ekranGoster("secim"); return; }
+  cevaplar = new Array(aktifTest.sorular.length).fill(null);
+  document.getElementById("girisTestAdi").textContent = aktifTest.ad;
+  document.getElementById("hizliInput").value = "";
+  document.getElementById("hizliKutu").classList.remove("acik");
+  document.getElementById("eksikUyari").classList.remove("goster");
+  izgaraKur();
+  ilerlemeGuncelle();
+  ekranGoster("giris");
+}
+
+function izgaraKur() {
+  const kap = document.getElementById("cevapIzgara");
+  kap.innerHTML = "";
+  aktifTest.sorular.forEach((s, i) => {
+    const satir = document.createElement("div");
+    satir.className = "soru-satir";
+    let html = "<span class='soru-no'>" + String(i + 1).padStart(2, "0") + "</span>";
+    ["A","B","C","D"].forEach(h => {
+      html += "<button class='balon' data-s='" + i + "' data-c='" + h +
+              "' onclick='isaretle(" + i + ",\"" + h + "\")'>" + h + "</button>";
+    });
+    html += "<button class='balon bos-secim' data-s='" + i +
+            "' data-c='-' onclick='isaretle(" + i + ",\"-\")'>—</button>";
+    satir.innerHTML = html;
+    kap.appendChild(satir);
+  });
+}
+
+function isaretle(i, secim) {
+  cevaplar[i] = (cevaplar[i] === secim) ? null : secim;  /* tekrar basınca kaldır */
+  document.querySelectorAll(".balon[data-s='" + i + "']").forEach(b =>
+    b.classList.toggle("dolu", b.dataset.c === cevaplar[i]));
+  ilerlemeGuncelle();
+}
+
+function ilerlemeGuncelle() {
+  const girilen = cevaplar.filter(c => c !== null).length;
+  const toplam = cevaplar.length;
+  document.getElementById("ilerlemeCubuk").style.width = (100 * girilen / toplam) + "%";
+  document.getElementById("ilerlemeYazi").textContent =
+    girilen + " / " + toplam + " soru girildi";
+  document.getElementById("eksikUyari").classList.remove("goster");
+}
+
+function hizliModAc() {
+  document.getElementById("hizliKutu").classList.toggle("acik");
+  document.getElementById("hizliInput").focus();
+}
+
+function hizliUygula(deger) {
+  const temiz = deger.toUpperCase().replace(/[^ABCD\-]/g, "");
+  for (let i = 0; i < cevaplar.length; i++) {
+    cevaplar[i] = i < temiz.length ? temiz[i] : null;
+    document.querySelectorAll(".balon[data-s='" + i + "']").forEach(b =>
+      b.classList.toggle("dolu", b.dataset.c === cevaplar[i]));
+  }
+  ilerlemeGuncelle();
+}
+
+/* =====================================================
+   ANALİZ MOTORU
+   ===================================================== */
+function analizEt(eksikOnaylandi) {
+  const girilmedi = cevaplar.filter(c => c === null).length;
+  if (girilmedi > 0 && !eksikOnaylandi) {
+    const u = document.getElementById("eksikUyari");
+    u.innerHTML = girilmedi + " soru girilmedi. Boş sayarak devam etmek için " +
+      "<button style='text-decoration:underline;font-weight:800;color:inherit' " +
+      "onclick='analizEt(true)'>buraya dokun</button>.";
+    u.classList.add("goster");
+    return;
+  }
+
+  /* girilmeyenleri boş say */
+  const kesin = cevaplar.map(c => c === null ? "-" : c);
+
+  /* kazanım bazında topla */
+  const kaz = {};
+  aktifTest.sorular.forEach((s, i) => {
+    const k = kaz[s.k] = kaz[s.k] || { dogru:0, yanlis:0, bos:0, toplam:0 };
+    k.toplam++;
+    if (kesin[i] === "-") k.bos++;
+    else if (kesin[i] === s.c) k.dogru++;
+    else k.yanlis++;
+  });
+
+  /* durum etiketi */
+  Object.values(kaz).forEach(k => {
+    k.oran = k.dogru / k.toplam;
+    if (k.toplam < MIN_SORU)            k.durum = "azveri";
+    else if (k.oran >= ESIK_SAGLAM)     k.durum = "saglam";
+    else if (k.oran >= ESIK_PEKISTIR)   k.durum = "pekistir";
+    else                                k.durum = "oncelikli";
+  });
+
+  const skor = Object.values(kaz).reduce((t, k) => t + k.dogru, 0);
+  const onceki = sonKayit(aktifTest.id);
+  sonucCiz(kaz, skor, onceki);
+
+  /* bu denemeyi kaydet */
+  const oranlar = {};
+  Object.entries(kaz).forEach(([kod, k]) => oranlar[kod] = k.oran);
+  gecmisYaz(aktifTest.id, { t: Date.now(), skor: skor, oranlar: oranlar });
+
+  ekranGoster("sonuc");
+}
+
+/* =====================================================
+   SONUÇ EKRANI
+   ===================================================== */
+const SIRA = { oncelikli:0, pekistir:1, azveri:2, saglam:3 };
+const RENK = {
+  oncelikli:{c:"var(--kirmizi)",z:"var(--kirmizi-zemin)",e:"Öncelikli"},
+  pekistir: {c:"var(--amber)",  z:"var(--amber-zemin)",  e:"Pekiştir"},
+  saglam:   {c:"var(--yesil)",  z:"var(--yesil-zemin)",  e:"Sağlam"},
+  azveri:   {c:"var(--gri)",    z:"var(--notr-zemin)",   e:"Az veri"}
+};
+
+function sonucCiz(kaz, skor, onceki) {
+  const toplam = aktifTest.sorular.length;
+  const oran = skor / toplam;
+  const durum = oran >= ESIK_SAGLAM ? "saglam" : oran >= ESIK_PEKISTIR ? "pekistir" : "oncelikli";
+
+  const halka = document.getElementById("skorHalka");
+  halka.style.background = RENK[durum].z;
+  halka.style.color = RENK[durum].c;
+  halka.style.border = "3px solid " + RENK[durum].c;
+  halka.textContent = skor + "/" + toplam;
+
+  let detay = "<b>" + aktifTest.ad + "</b><br>Doğru: " + skor +
+              " · Yanlış: " + Object.values(kaz).reduce((t,k)=>t+k.yanlis,0) +
+              " · Boş: " + Object.values(kaz).reduce((t,k)=>t+k.bos,0);
+  if (onceki) {
+    const fark = skor - onceki.skor;
+    if (fark !== 0) {
+      detay += "<br>Önceki girişe göre <span class='delta " +
+        (fark > 0 ? "arti'>+" : "eksi'>") + fark + " soru</span>";
+    } else {
+      detay += "<br>Önceki girişle aynı skor";
+    }
+  }
+  document.getElementById("skorDetay").innerHTML = detay;
+
+  const kap = document.getElementById("kazanimListesi");
+  kap.innerHTML = "";
+  Object.entries(kaz)
+    .sort((a, b) => SIRA[a[1].durum] - SIRA[b[1].durum] || a[1].oran - b[1].oran)
+    .forEach(([kod, k]) => kap.appendChild(kazanimKarti(kod, k, onceki)));
+}
+
+function kazanimKarti(kod, k, onceki) {
+  const bilgi = KAZANIMLAR[kod] || { ad: kod, sayfa: null, testler: [] };
+  const r = RENK[k.durum];
+  const kart = document.createElement("div");
+  kart.className = "kart kazanim-kart " + k.durum;
+
+  let html =
+    "<div class='kazanim-ust'><div>" +
+      "<div class='kazanim-ad'>" + bilgi.ad + "</div>" +
+      "<div class='kazanim-kod'>" + kod + "</div>" +
+    "</div><span class='rozet " + k.durum + "'>" + r.e + "</span></div>" +
+    "<div class='cubuk-kap'><div class='cubuk' style='width:" +
+      Math.round(k.oran * 100) + "%;background:" + r.c + "'></div></div>" +
+    "<div class='sayilar'>" + k.dogru + " doğru · " + k.yanlis +
+      " yanlış · " + k.bos + " boş";
+
+  /* gelişim farkı */
+  if (onceki && onceki.oranlar && kod in onceki.oranlar && k.toplam >= MIN_SORU) {
+    const fark = Math.round((k.oran - onceki.oranlar[kod]) * 100);
+    if (fark !== 0) {
+      html += " <span class='delta " + (fark > 0 ? "arti'>&#8593; +" : "eksi'>&#8595; ") +
+              fark + "%</span>";
+    }
+  }
+  html += "</div>";
+
+  /* reçete */
+  if (k.durum === "oncelikli" || k.durum === "pekistir") {
+    const digerTestler = bilgi.testler.filter(t => t !== aktifTest.id);
+    let recete = "";
+    if (bilgi.sayfa) recete += "Önce <b>sayfa " + bilgi.sayfa + "</b>'deki konu özetini oku";
+    if (digerTestler.length) {
+      recete += (recete ? ", sonra " : "") + "<b>" +
+        digerTestler.map(t => "Test " + t.replace("K","")).join(" ve ") + "</b>'ü çöz";
+    }
+    if (recete) html += "<div class='recete'>" + recete + ".</div>";
+    if (k.bos > k.yanlis) {
+      html += "<p class='not'>Bu kazanımda sorular çoğunlukla boş kalmış — konuya baştan çalışmak en doğrusu.</p>";
+    } else if (k.yanlis > 0) {
+      html += "<p class='not'>Yanlışlar ağırlıkta — çözümlü örnekler üzerinden nerede hata yaptığını bul.</p>";
+    }
+  }
+  if (k.durum === "azveri") {
+    html += "<p class='not'>Bu testte bu kazanımdan yeterli soru yok; kesin yorum için ilgili konu testini çöz.</p>";
+  }
+
+  kart.innerHTML = html;
+  return kart;
+}
+
+function yenidenCoz() {
+  testAc(aktifTest.id);
+}
+
+/* =====================================================
+   BAŞLANGIÇ · QR parametresi (?t=K1)
+   ===================================================== */
+(function basla() {
+  testleriListele();
+  const p = new URLSearchParams(location.search).get("t");
+  if (p && TESTLER.some(t => t.id === p.toUpperCase())) {
+    testAc(p.toUpperCase());
+  } else {
+    ekranGoster("secim");
+  }
+})();
+</script>
+</body>
+</html>
