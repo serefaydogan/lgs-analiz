@@ -92,6 +92,14 @@
     display:flex;align-items:center;justify-content:center;
     font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:500;
   }
+  .soru-durum{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+  .sd{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+      font-size:13px;font-weight:800;border:2px solid}
+  .sd.d{background:#E8F5EC;border-color:#2E7D46;color:#2E7D46}
+  .sd.y{background:#FDECEA;border-color:#C93A2B;color:#C93A2B}
+  .sd.b{background:#F3F4F6;border-color:#9AA1AC;color:#6B7280}
+  .sd small{font-size:9px;font-weight:700;display:block;line-height:1}
+  .sd-aciklama{font-size:12.5px;color:var(--gri);margin-top:8px}
   .skor-detay{font-size:14px;color:var(--gri);line-height:1.7}
   .skor-detay b{color:var(--murekkep)}
   .delta{display:inline-block;font-size:12.5px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:4px}
@@ -171,6 +179,7 @@
       <div class="skor-halka" id="skorHalka"></div>
       <div class="skor-detay" id="skorDetay"></div>
     </div>
+    <div class="kart" id="soruDurumKart"></div>
     <div id="kazanimListesi"></div>
     <div class="alt-butonlar">
       <button class="btn-cizgili" onclick="yenidenCoz()">Yeniden gir</button>
@@ -374,7 +383,7 @@ function analizEt(eksikOnaylandi) {
 
   const skor = Object.values(kaz).reduce((t, k) => t + k.dogru, 0);
   const onceki = sonKayit(aktifTest.id);
-  sonucCiz(kaz, skor, onceki);
+  sonucCiz(kaz, skor, onceki, kesin);
 
   /* bu denemeyi kaydet */
   const oranlar = {};
@@ -395,7 +404,7 @@ const RENK = {
   azveri:   {c:"var(--gri)",    z:"var(--notr-zemin)",   e:"Az veri"}
 };
 
-function sonucCiz(kaz, skor, onceki) {
+function sonucCiz(kaz, skor, onceki, kesin) {
   const toplam = aktifTest.sorular.length;
   const oran = skor / toplam;
   const durum = oran >= ESIK_SAGLAM ? "saglam" : oran >= ESIK_PEKISTIR ? "pekistir" : "oncelikli";
@@ -419,6 +428,23 @@ function sonucCiz(kaz, skor, onceki) {
     }
   }
   document.getElementById("skorDetay").innerHTML = detay;
+
+  /* soru bazlı durum şeridi: hangi soru doğru / yanlış / boş */
+  const sd = document.getElementById("soruDurumKart");
+  if (sd) {
+    let s = "<div style='font-weight:800;color:var(--murekkep);margin-bottom:4px'>Soru soru durum</div>" +
+            "<div class='soru-durum'>";
+    aktifTest.sorular.forEach(function (soru, i) {
+      let sinif, alt;
+      if (kesin[i] === "-")            { sinif = "b"; alt = "boş"; }
+      else if (kesin[i] === soru.c)    { sinif = "d"; alt = kesin[i]; }
+      else                             { sinif = "y"; alt = kesin[i] + "\u2192" + soru.c; }
+      s += "<div class='sd " + sinif + "'>" + (i + 1) + "<small>" + alt + "</small></div>";
+    });
+    s += "</div><div class='sd-aciklama'>Yanlışlarda kendi işaretlediğin şık ve doğru cevap " +
+         "yan yana gösterilir. Yeşil doğru, kırmızı yanlış, gri boş.</div>";
+    sd.innerHTML = s;
+  }
 
   const kap = document.getElementById("kazanimListesi");
   kap.innerHTML = "";
